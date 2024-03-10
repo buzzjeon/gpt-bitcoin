@@ -9,6 +9,29 @@ from openai import OpenAI
 import schedule
 import time
 
+import requests
+import json
+import datetime
+import time
+import yaml
+
+with open('config.yaml', encoding='UTF-8') as f:
+    _cfg = yaml.load(f, Loader=yaml.FullLoader)
+APP_KEY = _cfg['APP_KEY']
+APP_SECRET = _cfg['APP_SECRET']
+ACCESS_TOKEN = ""
+CANO = _cfg['CANO']
+ACNT_PRDT_CD = _cfg['ACNT_PRDT_CD']
+DISCORD_WEBHOOK_URL = _cfg['DISCORD_WEBHOOK_URL']
+URL_BASE = _cfg['URL_BASE']
+
+def send_message(msg):
+    """디스코드 메세지 전송"""
+    now = datetime.datetime.now()
+    message = {"content": f"[{now.strftime('%Y-%m-%d %H:%M:%S')}] {str(msg)}"}
+    requests.post(DISCORD_WEBHOOK_URL, data=message)
+    print(message)
+
 # Setup
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 upbit = pyupbit.Upbit(os.getenv("UPBIT_ACCESS_KEY"), os.getenv("UPBIT_SECRET_KEY"))
@@ -255,6 +278,7 @@ def make_decision_and_execute():
     print("Making decision and executing...")
     data_json = fetch_and_prepare_data()
     advice = analyze_data_with_gpt4(data_json)
+    send_message(advice)
 
     try:
         decision = json.loads(advice)
